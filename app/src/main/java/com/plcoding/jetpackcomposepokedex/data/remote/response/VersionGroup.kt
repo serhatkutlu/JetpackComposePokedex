@@ -1,6 +1,11 @@
 package com.plcoding.jetpackcomposepokedex.data.remote.response
 
+
+import com.google.gson.annotations.SerializedName
+
 data class VersionGroup(
-    val name: String,
-    val url: String
+    @SerializedName("name")
+    val name: String, // red-blue
+    @SerializedName("url")
+    val url: String // https://pokeapi.co/api/v2/version-group/1/
 )

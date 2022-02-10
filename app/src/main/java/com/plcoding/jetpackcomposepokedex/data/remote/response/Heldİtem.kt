@@ -1,6 +1,11 @@
 package com.plcoding.jetpackcomposepokedex.data.remote.response
 
+
+import com.google.gson.annotations.SerializedName
+
 data class Heldİtem(
+    @SerializedName("item")
     val item: İtem,
-    val version_details: List<VersionDetail>
+    @SerializedName("version_details")
+    val versionDetails: List<VersionDetail>
 )
