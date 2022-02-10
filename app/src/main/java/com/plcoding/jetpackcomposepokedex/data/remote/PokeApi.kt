@@ -12,10 +12,10 @@ interface PokeApi {
     suspend fun getPokemonList(
         @Query("limit") limit:Int,
         @Query("offset") offset:Int
-    ):PokemonList
+    ): PokemonList
 
     @GET("pokemon/{name}")
     suspend fun getPokemonInfo(
         @Path("name") name:String
-    ):Pokemon
+    ): Pokemon
 }
