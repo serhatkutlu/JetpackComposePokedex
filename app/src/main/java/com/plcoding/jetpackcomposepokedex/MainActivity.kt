@@ -17,6 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import androidx.navigation.NavType
 
 import androidx.navigation.compose.NavHost
@@ -24,6 +25,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navArgument
 
 import androidx.navigation.compose.rememberNavController
+import com.plcoding.jetpackcomposepokedex.PokemonlistScreen.PokemonListScreen
 import com.plcoding.jetpackcomposepokedex.ui.theme.JetpackComposePokedexTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -36,7 +38,7 @@ class MainActivity : ComponentActivity() {
                 val navController= rememberNavController()
                 NavHost(navController = navController, startDestination = "pokemon_list_screen" ){
                     composable("pokemon_list_screen"){
-
+                        PokemonListScreen(navController = navController,this@MainActivity)
                     }
                     composable("pokemon_detail_screen/{dominantColor}/{pokemonName}",
                     arguments = listOf(
@@ -63,12 +65,6 @@ class MainActivity : ComponentActivity() {
 
     @Preview
     @Composable
-    fun test(){
-        Box(modifier = Modifier
-            .background(Color.Blue)
-            .fillMaxSize()){
-            Text(text = "TEST", textAlign = TextAlign.Center, fontSize = 40.sp, modifier = Modifier.align(Alignment.Center))
-        }
-
+    fun Test(){
     }
 }

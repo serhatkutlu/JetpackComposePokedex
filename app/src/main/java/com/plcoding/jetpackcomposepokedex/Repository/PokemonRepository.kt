@@ -12,6 +12,7 @@ import javax.inject.Inject
 class PokemonRepository @Inject constructor(
     private val api:PokeApi
 ){
+
     suspend fun getPokemonListRepo(limit:Int,offset:Int):Resource<PokemonList>{
         val responce=try {
             api.getPokemonList(limit = limit, offset = offset)
