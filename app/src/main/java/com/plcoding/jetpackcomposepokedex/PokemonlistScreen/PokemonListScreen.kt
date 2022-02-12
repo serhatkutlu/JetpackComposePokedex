@@ -12,10 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -45,10 +42,11 @@ import com.plcoding.jetpackcomposepokedex.R
 import com.plcoding.jetpackcomposepokedex.data.models.PokedexListEntry
 import com.plcoding.jetpackcomposepokedex.ui.theme.RobotoCondensed
 import timber.log.Timber
+import java.nio.file.WatchEvent
 
 
 @Composable
-fun PokemonListScreen(navController: NavController,context: Context){
+fun PokemonListScreen(navController: NavController,viewModel: PokemonListViewModel= hiltViewModel()){
 
     Surface(color = MaterialTheme.colors.background,modifier=Modifier.fillMaxSize()) {
      Column {
@@ -61,7 +59,9 @@ fun PokemonListScreen(navController: NavController,context: Context){
              .align(CenterHorizontally))
          Searchbar(hint = "Search...", modifier = Modifier
              .fillMaxWidth()
-             .padding(16.dp)){}
+             .padding(16.dp)){
+             viewModel.searchPokemon(it)
+         }
          Spacer(modifier = Modifier.height(16.dp))
          Pokemonlist(navController = navController)
 
@@ -73,14 +73,15 @@ fun PokemonListScreen(navController: NavController,context: Context){
 
 @Composable
 fun Searchbar(modifier :Modifier=Modifier,hint:String="",onsearch:(String)->Unit={}){
-    var text=remember{
+    var text by remember{
         mutableStateOf("")
     }
     var isHintDisplay by remember {
         mutableStateOf(hint!="")
     }
     Box(modifier = modifier) {
-        BasicTextField(value = text.value, onValueChange = {
+        BasicTextField(value = text, onValueChange = {
+            text=it
             onsearch(it)
         }, maxLines = 1, singleLine = true, textStyle = TextStyle(color = Color.Black),
         modifier = Modifier
@@ -88,10 +89,10 @@ fun Searchbar(modifier :Modifier=Modifier,hint:String="",onsearch:(String)->Unit
             .shadow(5.dp, CircleShape)
             .background(Color.White, CircleShape)
             .padding(horizontal = 20.dp, vertical = 12.dp)
-            .onFocusChanged { isHintDisplay = it.isFocused != true }
+            .onFocusChanged { isHintDisplay = (it.isFocused ==false) && (text.isEmpty()) }
 
         )
-        if (!isHintDisplay){
+        if (isHintDisplay){
             Text(text = hint,color=Color.LightGray, modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp))
         }
 
@@ -145,7 +146,9 @@ Box(modifier = Modifier.fillMaxWidth()){
     if (painterState is ImagePainter.State.Loading){
         CircularProgressIndicator(
             color = MaterialTheme.colors.primary,
-            modifier = Modifier.scale(.5f).align(Center)
+            modifier = Modifier
+                .scale(.5f)
+                .align(Center)
         )
     }}
 
@@ -170,7 +173,7 @@ fun Pokemonlist(
     val enReached by remember {viewModel.endReached }
     val loadError by remember {viewModel.loadError }
     val isloading by remember {viewModel.isloading }
-
+    val isSearching by remember{viewModel.isSearching}
     LazyColumn(contentPadding = PaddingValues(16.dp)){
         val itemcount=if(pokemonList.size % 2==0){
             pokemonList.size/2
@@ -178,15 +181,30 @@ fun Pokemonlist(
             pokemonList.size /2 +1
         }
         items(itemcount){
-            if (it>=itemcount-1&& !enReached){
+            Timber.d(it.toString())
+            if (it>=itemcount-1&& !enReached&& !isloading&&!isSearching){
                 viewModel.loadPokemonPaginated()
             }
             PokedexRow(rowIndex = it, entries = pokemonList, navController =navController )
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
-
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Center){
+        if (isloading){
+            CircularProgressIndicator(color = MaterialTheme.colors.primary)
+            
+        }
+        if(loadError.isNotEmpty()) {
+            RetrySection(error = loadError) {
+                viewModel.loadPokemonPaginated()
+            }
+        }
+            
+    }
 }
+
+
+
 
 @Composable
 fun PokedexRow(
@@ -211,3 +229,17 @@ fun PokedexRow(
         }
     }
 }
+@Composable
+fun RetrySection(
+    error:String,
+    onRetry:()->Unit
+){
+    Column {
+        Text(text = error, color = Color.Red, fontSize = 18.sp)
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(onClick = { onRetry() }, modifier = Modifier.align(CenterHorizontally)) {
+            Text(text = "Retry")
+        }
+    }
+}
+

@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
                 val navController= rememberNavController()
                 NavHost(navController = navController, startDestination = "pokemon_list_screen" ){
                     composable("pokemon_list_screen"){
-                        PokemonListScreen(navController = navController,this@MainActivity)
+                        PokemonListScreen(navController = navController)
                     }
                     composable("pokemon_detail_screen/{dominantColor}/{pokemonName}",
                     arguments = listOf(

@@ -1,6 +1,7 @@
 package com.plcoding.jetpackcomposepokedex.PokemonlistScreen
 
 import android.annotation.SuppressLint
+import android.app.DownloadManager
 import android.graphics.Bitmap
 
 import android.graphics.drawable.BitmapDrawable
@@ -19,6 +20,7 @@ import com.plcoding.jetpackcomposepokedex.Repository.PokemonRepository
 import com.plcoding.jetpackcomposepokedex.Util.Resource
 import com.plcoding.jetpackcomposepokedex.data.models.PokedexListEntry
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -36,10 +38,43 @@ class PokemonListViewModel @Inject constructor(
     var isloading = mutableStateOf(false)
     var endReached= mutableStateOf(false)
 
+    private var cachedPokemonList= listOf<PokedexListEntry>()
+    private var isSearchStarting=true
+    var isSearching= mutableStateOf(false)
+
+
+
     init {
         loadPokemonPaginated()
     }
 
+    fun searchPokemon(query:String){
+        val lisToSearch=if(isSearchStarting){
+            pokemonList.value
+        }else{
+            cachedPokemonList
+        }
+        viewModelScope.launch(Dispatchers.Default) {
+            if (query.isEmpty()){
+                pokemonList.value=cachedPokemonList
+                isSearchStarting=true
+                isSearching.value=false
+                return@launch
+            }
+            /*
+            *If query parameter or index number does not match, it is deleted.
+             */
+            val results=lisToSearch.filter {
+            it.pokemonName.contains(query.trim(),ignoreCase = true)||it.nunber.toString()==query.trim()
+            }
+            if (isSearchStarting){
+                cachedPokemonList=pokemonList.value
+                isSearchStarting=false
+            }
+            pokemonList.value=results
+            isSearching.value=true
+        }
+    }
      fun loadPokemonPaginated (){
 
         viewModelScope.launch{
@@ -60,7 +95,7 @@ class PokemonListViewModel @Inject constructor(
                             entry.url.takeLastWhile { it.isDigit() }
                         }
                         val url ="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${nunber}.png"
-                        Timber.d(url)
+
                         //capitalize the first letter of the word
 
                         PokedexListEntry(entry.name.capitalize(java.util.Locale.ROOT),url, nunber.toInt())
@@ -69,6 +104,7 @@ class PokemonListViewModel @Inject constructor(
                     loadError.value=""
                     isloading.value=false
                     pokemonList.value+=poxedexEntries
+
 
                 }
 
