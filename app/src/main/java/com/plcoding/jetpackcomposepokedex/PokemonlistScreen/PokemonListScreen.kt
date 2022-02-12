@@ -4,8 +4,6 @@ package com.plcoding.jetpackcomposepokedex.PokemonlistScreen
 
 
 import android.content.Context
-import android.graphics.drawable.Drawable
-import android.widget.ImageView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -39,11 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.ImageLoader
 import coil.compose.ImagePainter
 import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
-import coil.target.ImageViewTarget
 import com.google.accompanist.coil.CoilImage
 import com.plcoding.jetpackcomposepokedex.R
 import com.plcoding.jetpackcomposepokedex.data.models.PokedexListEntry
@@ -122,38 +118,47 @@ fun PokedexEntry(
         }
     )
     {
-        Timber.d("a")
+
 Column{
-    Timber.d("b")
+    val painter = rememberImagePainter(
+        data = entry.imageUrl
+    )
+Box(modifier = Modifier.fillMaxWidth()){
+    (painter.state as? ImagePainter.State.Success)?.let { successState ->
 
-    CoilImage(request = ImageRequest.Builder(LocalContext.current)
-        .data(entry.imageUrl)
-        .target{
-
-            viewModel.calculateDominantColor(it){
-                domColor=it
+        LaunchedEffect(Unit) {
+                val drawable = successState.result.drawable
+                viewModel.calculateDominantColor(drawable) { color ->
+                    domColor = color
+                }
             }
         }
-        .build(),
+
+    val painterState = painter.state
+    Image(
+        painter = painter,
         contentDescription = entry.pokemonName,
-        fadeIn = true,
         modifier = Modifier
-            .size(120.dp)
-            .align(CenterHorizontally)
-
+            .size(128.dp)
+            .align(Center),
     )
-    {
-        Timber.d("c")
+    if (painterState is ImagePainter.State.Loading){
+        CircularProgressIndicator(
+            color = MaterialTheme.colors.primary,
+            modifier = Modifier.scale(.5f).align(Center)
+        )
+    }}
 
-        CircularProgressIndicator(color= MaterialTheme.colors.primary , modifier = Modifier.scale(0.5f))
-    }
 
+    Text(
+        text = entry.pokemonName,
+        fontSize = 20.sp,
+        textAlign = TextAlign.Center,
+        modifier = Modifier.fillMaxWidth()
+    )
 
-}
-    Text(text = entry.pokemonName, fontFamily = RobotoCondensed,
-        fontSize = 20.sp, textAlign = TextAlign.Center, modifier = Modifier.fillMaxSize())
-}
-    }
+}}}
+
 
 
 @Composable
@@ -177,6 +182,7 @@ fun Pokemonlist(
                 viewModel.loadPokemonPaginated()
             }
             PokedexRow(rowIndex = it, entries = pokemonList, navController =navController )
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 
