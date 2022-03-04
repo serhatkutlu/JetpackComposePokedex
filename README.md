@@ -1,6 +1,6 @@
 # JetpackComposePokedex
 
-Made using Jatpack Compose with tutorials from Philipp Lackner
+Made using Jatpack Compose with tutorials From Philipp Lackner
 
 # SCREENSHOT
 ![Ekran görüntüsü 2022-03-03 173340](https://user-images.githubusercontent.com/84921644/156585632-6019719c-13ce-470d-be61-97b0714552c2.png)
